@@ -135,7 +135,7 @@ The behavior for when STEPS is positive is not currently well-defined."
 
 ;;;###autoload (autoload 'gptel-fn-complete "gptel-fn-complete" nil t)
 (defun gptel-fn-complete ()
-  "Complete using an LLM.
+  "Complete function at point using an LLM.
 
 Either the last function or the current region will be used for context."
   (interactive)

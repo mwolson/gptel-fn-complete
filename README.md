@@ -15,7 +15,7 @@ To use:
 * Add the following to your Emacs configuration (typically `~/.emacs.d/init.el` or similar):
   ```elisp
   (add-to-list 'load-path (expand-file-name "~/gptel-fn-complete"))
-  (autoload #'gptel-fn-complete "gptel-fn-complete" "Complete using an LLM" t)
+  (autoload #'gptel-fn-complete "gptel-fn-complete" "Complete function at point using an LLM." t)
   ```
 * Now choose which key you'd like to bind it to. I typically add something like this to my Emacs config:
   ```elisp
