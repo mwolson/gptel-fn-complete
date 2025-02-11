@@ -4,6 +4,7 @@
 ;; Copyright (C) 2024  Karthik Chikmagalur
 
 ;; Author: Michael Olson <mwolson@gnu.org>
+;; Version: 0.1.0
 ;; Keywords: hypermedia, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -159,19 +160,19 @@ Either the last function or the current region will be used for context."
       (setcar prompt (concat (car-safe (gptel--parse-directive
                                         #'gptel-fn-complete-directive-default 'raw)))))
     (gptel-request prompt
-                   :dry-run nil
-                   :system #'gptel-fn-complete-directive-default
-                   :stream gptel-stream
-                   :context
-                   (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
-                                 (make-overlay (region-beginning) (region-end) nil t))))
-                     (overlay-put ov 'category 'gptel)
-                     (overlay-put ov 'evaporate t)
-                     (cons ov (generate-new-buffer "*gptel-fn-complete*")))
-                   :callback `(lambda (&rest args)
-                                (apply #'gptel--rewrite-callback args)
-                                (with-current-buffer ,buffer
-                                  (backward-char))))))
+      :dry-run nil
+      :system #'gptel-fn-complete-directive-default
+      :stream gptel-stream
+      :context
+      (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
+                    (make-overlay (region-beginning) (region-end) nil t))))
+        (overlay-put ov 'category 'gptel)
+        (overlay-put ov 'evaporate t)
+        (cons ov (generate-new-buffer "*gptel-fn-complete*")))
+      :callback `(lambda (&rest args)
+                   (apply #'gptel--rewrite-callback args)
+                   (with-current-buffer ,buffer
+                     (backward-char))))))
 
 (provide 'gptel-fn-complete)
 ;;; gptel-fn-complete.el ends here
