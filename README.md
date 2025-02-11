@@ -98,7 +98,7 @@ of the standard `gptel-rewrite` prompt, and it turns out that it can!
 * This is intended to be more of a tech demo than a final project; it piggybacks on top of gptel-rewrite
   instead of doing things a more idiomatic way. I'd love for this to be improved upon, ideally with a solution
   that's part of gptel itself.
-* I've only tested this with Claude.
+* I've tested this with Claude, Gemini 2.0 Flash, and a few local LLMs.
 * For automatically identifying the entire current function to complete, you may have the best luck with either
   Emacs Lisp or files with major modes that have a tree-sitter grammar installed, as otherwise we have to guess.
   In general it should err on the side of sending too little rather than too much.
