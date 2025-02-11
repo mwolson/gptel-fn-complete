@@ -28,6 +28,9 @@
 (require 'gptel)
 (require 'gptel-rewrite)
 
+(declare-function treesit-beginning-of-defun "treesit")
+(declare-function treesit-end-of-defun "treesit")
+
 (defvar gptel-fn-complete-extra-directive "Complete at end:\n\n%s")
 (defvar gptel-fn-complete-directive 'gptel-fn-complete-directive-default)
 
