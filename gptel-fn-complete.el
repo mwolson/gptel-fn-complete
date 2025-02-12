@@ -91,6 +91,7 @@ which see."
            " the output.")))))
 
 (defun gptel-fn-complete--mark-function-default (&optional steps)
+  "Put mark at end of this function or paragraph, point at beginning."
   (let ((pt-min (point))
         (pt-mid (point))
         (pt-max (point)))
@@ -113,6 +114,7 @@ which see."
     (goto-char pt-max)))
 
 (defun gptel-fn-complete--mark-function-treesit (&optional steps)
+  "Put mark at end of this function, point at beginning, for a treesit mode."
   (treesit-end-of-defun)
   (let ((pt-max (point)))
     (treesit-beginning-of-defun)
