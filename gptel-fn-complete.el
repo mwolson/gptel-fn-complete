@@ -1,4 +1,4 @@
-;;; gptel-fn-complete.el --- Function at point completion for gptel  -*- lexical-binding: t; -*-
+;;; gptel-fn-complete.el --- Complete the function at point using gptel  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025  Michael Olson
 ;; Copyright (C) 2024  Karthik Chikmagalur
@@ -25,7 +25,14 @@
 
 ;;; Commentary:
 
+;; Rewriting completion of function at point using gptel in Emacs.
 ;;
+;; This uses the existing `gptel-rewrite.el` library to perform completion on an entire function,
+;; replacing what's already written so far in that function in a way that prefers to complete the
+;; end of the function, but may also apply small changes to the original function.
+;;
+;; To use this library, install both gptel and gptel-fn-complete, and then bind
+;; `gptel-fn-complete` to your key of choice.
 
 ;;; Code:
 (require 'gptel)
@@ -167,19 +174,19 @@ Either the last function or the current region will be used for context."
     (when nosystem
       (setcar prompt (concat (car-safe (gptel--parse-directive gptel-fn-complete-directive 'raw)))))
     (gptel-request prompt
-                   :dry-run nil
-                   :system gptel-fn-complete-directive
-                   :stream gptel-stream
-                   :context
-                   (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
-                                 (make-overlay (region-beginning) (region-end) nil t))))
-                     (overlay-put ov 'category 'gptel)
-                     (overlay-put ov 'evaporate t)
-                     (cons ov (generate-new-buffer "*gptel-fn-complete*")))
-                   :callback `(lambda (&rest args)
-                                (apply #'gptel--rewrite-callback args)
-                                (with-current-buffer ,buffer
-                                  (backward-char))))))
+      :dry-run nil
+      :system gptel-fn-complete-directive
+      :stream gptel-stream
+      :context
+      (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
+                    (make-overlay (region-beginning) (region-end) nil t))))
+        (overlay-put ov 'category 'gptel)
+        (overlay-put ov 'evaporate t)
+        (cons ov (generate-new-buffer "*gptel-fn-complete*")))
+      :callback `(lambda (&rest args)
+                   (apply #'gptel--rewrite-callback args)
+                   (with-current-buffer ,buffer
+                     (backward-char))))))
 
 (provide 'gptel-fn-complete)
 ;;; gptel-fn-complete.el ends here
