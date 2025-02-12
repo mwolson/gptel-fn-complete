@@ -4,7 +4,10 @@
 ;; Copyright (C) 2024  Karthik Chikmagalur
 
 ;; Author: Michael Olson <mwolson@gnu.org>
+;; Maintainer: Michael Olson <mwolson@gnu.org>
 ;; Version: 0.1.1
+;; URL: https://github.com/mwolson/gptel-fn-complete
+;; Package-Requires: ((emacs "29") (gptel "0.9.7"))
 ;; Keywords: hypermedia, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
