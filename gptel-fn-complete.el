@@ -63,21 +63,20 @@ which see."
                                (memq (aref lang 0) '(?a ?e ?i ?o ?u)))
                           "an" "a")))
         (if (derived-mode-p 'prog-mode)
-            (format (concat
-                     "You are %s %s programmer.  "
-                     "Follow my instructions and refactor %s code I provide.\n"
-                     "- Generate ONLY %s code as output, without any "
-                     "explanation.\n"
-                     "- Do not abbreviate or omit code.\n"
-                     "- Write only a single function.\n"
-                     "- It is acceptable to slightly adjust the existing "
-                     "function for readability.\n"
-                     "- Give me the final and best answer only.\n"
-                     "- Do not ask for further clarification, and make "
-                     "any assumptions you need to follow instructions.\n"
-                     "- Never include markdown code fences like \"```\" in "
-                     "the output.")
-                    article lang lang lang)
+            (concat (format "You are %s %s programmer.  " article lang)
+                    (format "Follow my instructions and refactor %s " lang)
+                    "code that I provide.\n"
+                    (format "- Generate ONLY %s code as output, " lang)
+                    "without any explanation.\n"
+                    "- Do not abbreviate or omit code.\n"
+                    "- Write only a single function.\n"
+                    "- It is acceptable to slightly adjust the existing "
+                    "function for readability.\n"
+                    "- Give me the final and best answer only.\n"
+                    "- Do not ask for further clarification, and make "
+                    "any assumptions you need to follow instructions.\n"
+                    "- Never include markdown code fences like \"```\" in "
+                    "the output.")
           (concat
            (if (string-empty-p lang)
                "You are an editor."
