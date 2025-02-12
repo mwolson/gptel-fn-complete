@@ -2,8 +2,9 @@
 
 Rewriting completion of function at point using [gptel](https://github.com/karthink/gptel) in Emacs.
 
-This is an example of how the existing `gptel-rewrite.el` file can be used to perform completion on an entire function,
-replacing what's already written so far in that function.
+This uses the existing `gptel-rewrite.el` library to perform completion on an entire function,
+replacing what's already written so far in that function in a way that prefers to complete the end
+of the function, but may also apply small changes to the original function.
 
 ## Setup
 
@@ -106,5 +107,5 @@ of the standard `gptel-rewrite` prompt, and it turns out that it can!
   * Note that the install doc might take a while to get through, and may have opinionated settings
   * The additional AI features which have more bindings on <kbd>C-c .</kbd> than in the above example
     [are described here](https://github.com/mwolson/emacs-shared/blob/master/doc/tips.md#using-ai-and-finding-definitions)
-* `karthink` and other gptel contributors may use the code in this gist freely and reassign copyright to themselves as need be
-  if they would like.
+* `karthink` and other gptel contributors may use the code in this repo freely and reassign copyright to
+  themselves as need be if they would like.
