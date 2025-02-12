@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Olson <mwolson@gnu.org>
 ;; Version: 0.1.1
 ;; URL: https://github.com/mwolson/gptel-fn-complete
-;; Package-Requires: ((emacs "29") (gptel "0.9.7"))
+;; Package-Requires: ((emacs "29.1") (gptel "0.9.7"))
 ;; Keywords: hypermedia, convenience, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,9 +27,10 @@
 
 ;; Rewriting completion of function at point using gptel in Emacs.
 ;;
-;; This uses the existing `gptel-rewrite.el` library to perform completion on an entire function,
-;; replacing what's already written so far in that function in a way that prefers to complete the
-;; end of the function, but may also apply small changes to the original function.
+;; This uses the existing `gptel-rewrite.el` library to perform completion on an
+;; entire function, replacing what's already written so far in that function in
+;; a way that prefers to complete the end of the function, but may also apply
+;; small changes to the original function.
 ;;
 ;; To use this library, install both gptel and gptel-fn-complete, and then bind
 ;; `gptel-fn-complete` to your key of choice.
@@ -62,18 +63,20 @@ which see."
                                (memq (aref lang 0) '(?a ?e ?i ?o ?u)))
                           "an" "a")))
         (if (derived-mode-p 'prog-mode)
-            (format (concat "You are %s %s programmer.  "
-                            "Follow my instructions and refactor %s code I provide.\n"
-                            "- Generate ONLY %s code as output, without any explanation.\n"
-                            "- Do not abbreviate or omit code.\n"
-                            "- Write only a single function.\n"
-                            "- It is acceptable to slightly adjust the existing "
-                            "function for readability.\n"
-                            "- Give me the final and best answer only.\n"
-                            "- Do not ask for further clarification, and make "
-                            "any assumptions you need to follow instructions.\n"
-                            "- Never include markdown code fences like \"```\" in "
-                            "the output.")
+            (format (concat
+                     "You are %s %s programmer.  "
+                     "Follow my instructions and refactor %s code I provide.\n"
+                     "- Generate ONLY %s code as output, without any "
+                     "explanation.\n"
+                     "- Do not abbreviate or omit code.\n"
+                     "- Write only a single function.\n"
+                     "- It is acceptable to slightly adjust the existing "
+                     "function for readability.\n"
+                     "- Give me the final and best answer only.\n"
+                     "- Do not ask for further clarification, and make "
+                     "any assumptions you need to follow instructions.\n"
+                     "- Never include markdown code fences like \"```\" in "
+                     "the output.")
                     article lang lang lang)
           (concat
            (if (string-empty-p lang)
@@ -168,17 +171,20 @@ Either the last function or the current region will be used for context."
                        "What is the required change?"
                        (format gptel-fn-complete-extra-directive
                                (or (get-char-property (point) 'gptel-rewrite)
-                                   (buffer-substring-no-properties (region-beginning) (region-end))))))
+                                   (buffer-substring-no-properties
+                                    (region-beginning) (region-end))))))
          (buffer (current-buffer)))
     (deactivate-mark)
     (when nosystem
-      (setcar prompt (concat (car-safe (gptel--parse-directive gptel-fn-complete-directive 'raw)))))
+      (setcar prompt (concat (car-safe (gptel--parse-directive
+                                        gptel-fn-complete-directive 'raw)))))
     (gptel-request prompt
       :dry-run nil
       :system gptel-fn-complete-directive
       :stream gptel-stream
       :context
-      (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
+      (let ((ov (or (cdr-safe (get-char-property-and-overlay
+                               (point) 'gptel-rewrite))
                     (make-overlay (region-beginning) (region-end) nil t))))
         (overlay-put ov 'category 'gptel)
         (overlay-put ov 'evaporate t)
