@@ -42,19 +42,31 @@
 (declare-function treesit-beginning-of-defun "treesit")
 (declare-function treesit-end-of-defun "treesit")
 
-(defvar gptel-fn-complete-extra-directive "Complete at end:\n\n%s")
-(defvar gptel-fn-complete-directive 'gptel-fn-complete--directive-default)
+(defgroup gptel-fn-complete nil
+  "Complete the function at point using gptel."
+  :group 'gptel)
 
-(defun gptel-fn-complete--directive-default ()
-  "Generic directive for rewriting or refactoring.
+(defcustom gptel-fn-complete-extra-directive "Complete at end:\n\n%s"
+  "Directive to use as the last user message when sending completion prompts.
 
-These are instructions not specific to any particular required
-change.
+`format' will be called on it with the string contents of the function as the
+only argument."
+  :group 'gptel-fn-complete
+  :type 'string)
+
+(defcustom gptel-fn-complete-directive 'gptel-fn-complete--directive-default
+  "Active system message for function completion actions.
+
+These are instructions not specific to any particular required change.
 
 The returned string is interpreted as the system message for the
-rewrite request.  To use your own, add a different directive to
-`gptel-directives', or add to `gptel-rewrite-directives-hook',
-which see."
+completion request.  To use your own, customize this option or (to affect
+gptel rewrites as well) add to `gptel-rewrite-directives-hook'."
+  :group 'gptel-fn-complete
+  :type '(function :tag "Function that returns a directive string"))
+
+(defun gptel-fn-complete--directive-default ()
+  "Generic directive for function completion."
   (or (save-mark-and-excursion
         (run-hook-with-args-until-success
          'gptel-rewrite-directives-hook))
