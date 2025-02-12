@@ -75,7 +75,7 @@ which see."
                     "- Give me the final and best answer only.\n"
                     "- Do not ask for further clarification, and make "
                     "any assumptions you need to follow instructions.\n"
-                    "- Never include markdown code fences like \"```\" in "
+                    "- NEVER include markdown code fences like \"```\" in "
                     "the output.")
           (concat
            (if (string-empty-p lang)
@@ -87,11 +87,14 @@ which see."
            "  Write only a single paragraph or function."
            "  It is acceptable to slightly adjust the existing"
            " function for readability."
-           "  Never include markdown code fences like \"```\" in"
+           "  NEVER include markdown code fences like \"```\" in"
            " the output.")))))
 
-(defun gptel-fn-complete--mark-function-default (&optional steps)
-  "Put mark at end of this function or paragraph, point at beginning."
+(defun gptel-fn-complete--mark-function-or-para (&optional steps)
+  "Put mark at end of this function or paragraph, point at beginning.
+
+If STEPS is negative, mark `- arg - 1` extra functions backward.
+The behavior for when STEPS is positive is not currently well-defined."
   (let ((pt-min (point))
         (pt-mid (point))
         (pt-max (point)))
@@ -114,7 +117,10 @@ which see."
     (goto-char pt-max)))
 
 (defun gptel-fn-complete--mark-function-treesit (&optional steps)
-  "Put mark at end of this function, point at beginning, for a treesit mode."
+  "Put mark at end of this function, point at beginning, for a treesit mode.
+
+If STEPS is negative, mark `- arg - 1` extra functions backward.
+The behavior for when STEPS is positive is not currently well-defined."
   (treesit-end-of-defun)
   (let ((pt-max (point)))
     (treesit-beginning-of-defun)
@@ -140,7 +146,7 @@ The behavior for when STEPS is positive is not currently well-defined."
         (gptel-fn-complete--mark-function-treesit steps)
         (setq pt-min (region-beginning)
               pt-max (region-end))))
-    (gptel-fn-complete--mark-function-default steps)
+    (gptel-fn-complete--mark-function-or-para steps)
     (when (< (region-beginning) pt-min)
       (setq pt-min (region-beginning)
             pt-max (region-end)))
