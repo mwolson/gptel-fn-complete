@@ -35,9 +35,9 @@
 (declare-function treesit-end-of-defun "treesit")
 
 (defvar gptel-fn-complete-extra-directive "Complete at end:\n\n%s")
-(defvar gptel-fn-complete-directive 'gptel-fn-complete-directive-default)
+(defvar gptel-fn-complete-directive 'gptel-fn-complete--directive-default)
 
-(defun gptel-fn-complete-directive-default ()
+(defun gptel-fn-complete--directive-default ()
   "Generic directive for rewriting or refactoring.
 
 These are instructions not specific to any particular required
@@ -114,7 +114,8 @@ which see."
     (set-mark (point))
     (goto-char pt-max)))
 
-(defun gptel-fn-complete--mark-function (&optional steps)
+;;;###autoload
+(defun gptel-fn-complete-mark-function (&optional steps)
   "Put mark at end of this function, point at beginning.
 
 If STEPS is negative, mark `- arg - 1` extra functions backward.
@@ -140,15 +141,16 @@ The behavior for when STEPS is positive is not currently well-defined."
     (goto-char (1- pt-max))
     (push-mark pt-min nil t)))
 
-;;;###autoload (autoload 'gptel-fn-complete "gptel-fn-complete" nil t)
+;;;###autoload
 (defun gptel-fn-complete ()
   "Complete function at point using an LLM.
 
 Either the last function or the current region will be used for context."
   (interactive)
-  (gptel-fn-complete--mark-function)
+  (gptel-fn-complete-mark-function)
   (gptel-fn-complete-send))
 
+;;;###autoload
 (defun gptel-fn-complete-send ()
   "Complete using an LLM."
   (let* ((nosystem (gptel--model-capable-p 'nosystem))
@@ -163,11 +165,10 @@ Either the last function or the current region will be used for context."
          (buffer (current-buffer)))
     (deactivate-mark)
     (when nosystem
-      (setcar prompt (concat (car-safe (gptel--parse-directive
-                                        #'gptel-fn-complete-directive-default 'raw)))))
+      (setcar prompt (concat (car-safe (gptel--parse-directive gptel-fn-complete-directive 'raw)))))
     (gptel-request prompt
                    :dry-run nil
-                   :system #'gptel-fn-complete-directive-default
+                   :system gptel-fn-complete-directive
                    :stream gptel-stream
                    :context
                    (let ((ov (or (cdr-safe (get-char-property-and-overlay (point) 'gptel-rewrite))
