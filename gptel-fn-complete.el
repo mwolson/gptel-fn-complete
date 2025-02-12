@@ -5,7 +5,7 @@
 
 ;; Author: Michael Olson <mwolson@gnu.org>
 ;; Maintainer: Michael Olson <mwolson@gnu.org>
-;; Version: 0.1.1
+;; Version: 0.2.0
 ;; URL: https://github.com/mwolson/gptel-fn-complete
 ;; Package-Requires: ((emacs "29.1") (gptel "0.9.7"))
 ;; Keywords: hypermedia, convenience, tools
