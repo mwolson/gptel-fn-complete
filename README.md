@@ -25,7 +25,7 @@ To use:
 * Optionally, let `gptel-fn-complete` and `gptel-rewrite` automatically apply
   the code completion from the LLM and skip the extra prompt about it:
   ```elisp
-  (setq gptel-rewrite-default-action 'accept)
+  (setopt gptel-rewrite-default-action 'accept)
   ```
 * Now choose which key you'd like to bind `gptel-fn-complete` to. I typically
   add something like this to my Emacs config:
@@ -118,7 +118,7 @@ out that it can!
 
   `gptel-fn-complete` uses a standard `gptel-rewrite` overlay on the code result
   instead of using the more visually-busy smerge markers. It can be configured
-  using `(setq gptel-rewrite-default-action 'accept)` to automatically skip the
+  using `(setopt gptel-rewrite-default-action 'accept)` to automatically skip the
   `gptel-rewrite` overlay and directly insert the text. It does not change the
   window layout to show a chat buffer.
 
