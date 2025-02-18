@@ -177,10 +177,10 @@ If STEPS is negative, mark `- arg - 1` extra functions backward.
 The behavior for when STEPS is positive is not currently well-defined."
   (treesit-end-of-defun)
   (let ((pt-max (point)))
-    (treesit-beginning-of-defun)
+    (treesit-beginning-of-defun 1)
     (setq steps (1- (- 0 (or steps 0))))
     (while (> steps 0)
-      (treesit-beginning-of-defun)
+      (treesit-beginning-of-defun 1)
       (cl-decf steps))
     (set-mark (point))
     (goto-char pt-max)))
@@ -209,7 +209,11 @@ The behavior for when STEPS is positive is not currently well-defined."
                 (< (point) pt-max))
       (forward-char))
     (setq pt-min (point))
-    (goto-char (1- pt-max))
+    (goto-char pt-max)
+    (save-match-data
+      (while (and (looking-back "[[:space:]\r\n]" (1- (point)))
+                  (> (point) pt-min))
+        (backward-char)))
     (push-mark pt-min nil t)))
 
 ;;;###autoload
