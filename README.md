@@ -105,13 +105,32 @@ I decided to see if Claude could also do code completions this way, with a very
 terse kind of prompt on top of the standard `gptel-rewrite` prompt, and it turns
 out that it can!
 
+## Comparison with other Emacs AI modes
+
+* [elysium](https://github.com/lanceberge/elysium) - `elysium` sends either the
+  entire file or a selected region to the LLM. It also shows a window on the
+  side with the LLM response, and includes smerge markers into the buffer with
+  the result from the LLM.
+
+  `gptel-fn-complete` uses a standard `gptel-rewrite` overlay on the code result
+  instead of using the more visually-busy smerge markers. It can be configured
+  using `(setq gptel-rewrite-default-action 'accept)` to automatically skip the
+  `gptel-rewrite` overlay and directly insert the text. It does not change the
+  window layout to show a chat buffer.
+
+* [minuet](https://github.com/milanglacier/minuet-ai.el) - `minuet` typically
+  does a "fill-in-the-middle" style completion that doesn't modify the code
+  before the point. It also has an optional auto-suggestion capability as you
+  type.
+
+  `gptel-fn-complete` allows a partial rewrite of the entire function, if
+  the LLM thinks there is stylistic value in the rewrite, and is typically
+  manually triggered by a keybind.
+
 ## Notes
 
-* This is intended to be more of a tech demo than a final project; it piggybacks
-  on top of gptel-rewrite instead of doing things a more idiomatic way. I'd love
-  for this to be improved upon, ideally with a solution that's part of gptel
-  itself.
-* I've tested this with Claude, Gemini 2.0 Flash, and a few local LLMs.
+* I've tested this with Claude, Gemini 2.0 Flash (which may still sometimes
+  include unwanted code fences), and a few local LLMs.
 * For automatically identifying the entire current function to complete, you may
   have the best luck with either Emacs Lisp or files with major modes that have
   a tree-sitter grammar installed, as otherwise we have to guess.  In general it
