@@ -54,7 +54,8 @@ only argument."
   :group 'gptel-fn-complete
   :type 'string)
 
-(defcustom gptel-fn-complete-directive 'gptel-fn-complete--directive-default
+(defcustom gptel-fn-complete-function-directive
+  'gptel-fn-complete--function-directive-default
   "Active system message for function completion actions.
 
 These are instructions not specific to any particular required change.
@@ -65,42 +66,83 @@ gptel rewrites as well) add to `gptel-rewrite-directives-hook'."
   :group 'gptel-fn-complete
   :type '(function :tag "Function that returns a directive string"))
 
-(defun gptel-fn-complete--directive-default ()
+(defcustom gptel-fn-complete-region-directive
+  'gptel-fn-complete--region-directive-default
+  "Active system message for region completion actions.
+
+These are instructions not specific to any particular required change.
+
+The returned string is interpreted as the system message for the
+completion request.  To use your own, customize this option or (to affect
+gptel rewrites as well) add to `gptel-rewrite-directives-hook'."
+  :group 'gptel-fn-complete
+  :type '(function :tag "Function that returns a directive string"))
+
+(defun gptel-fn-complete--prog-mode-system-prompt (single-function-p)
+  "Return a system prompt for gptel-fn-complete for prog-mode buffers.
+
+If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
+function."
+  (let* ((lang (downcase (gptel--strip-mode-suffix major-mode)))
+         (article (if (and lang (not (string-empty-p lang))
+                           (memq (aref lang 0) '(?a ?e ?i ?o ?u)))
+                      "an" "a")))
+    (concat (format "You are %s %s programmer.  " article lang)
+            (format "Follow my instructions and refactor %s " lang)
+            "code that I provide.\n"
+            (format "- Generate ONLY %s code as output, " lang)
+            "without any explanation.\n"
+            "- Do not abbreviate or omit code.\n"
+            (if single-function-p "- Write only a single function.\n" "")
+            "- It is acceptable to slightly adjust the existing "
+            (if single-function-p "function" "code")
+            " for readability.\n"
+            "- Give me the final and best answer only.\n"
+            "- Do not ask for further clarification, and make "
+            "any assumptions you need to follow instructions.\n"
+            "- NEVER include markdown code fences like \"```\" in "
+            "the output.")))
+
+(defun gptel-fn-complete--normal-system-prompt (single-function-p)
+  "Return a system prompt for gptel-fn-complete for prog-mode buffers.
+
+If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
+function."
+  (let* ((lang (downcase (gptel--strip-mode-suffix major-mode)))
+         (article (if (and lang (not (string-empty-p lang))
+                           (memq (aref lang 0) '(?a ?e ?i ?o ?u)))
+                      "an" "a")))
+    (concat
+     (if (string-empty-p lang)
+         "You are an editor."
+       (format "You are %s %s editor." article lang))
+     "  Follow my instructions and improve or rewrite the text I provide."
+     "  Generate ONLY the replacement text,"
+     " without any explanation."
+     (if single-function-p "  Write only a single paragraph or function." "")
+     "  It is acceptable to slightly adjust the existing"
+     (if single-function-p " function" " code")
+     " for readability."
+     "  NEVER include markdown code fences like \"```\" in"
+     " the output.")))
+
+(defun gptel-fn-complete--function-directive-default ()
   "Generic directive for function completion."
   (or (save-mark-and-excursion
         (run-hook-with-args-until-success
          'gptel-rewrite-directives-hook))
-      (let* ((lang (downcase (gptel--strip-mode-suffix major-mode)))
-             (article (if (and lang (not (string-empty-p lang))
-                               (memq (aref lang 0) '(?a ?e ?i ?o ?u)))
-                          "an" "a")))
-        (if (derived-mode-p 'prog-mode)
-            (concat (format "You are %s %s programmer.  " article lang)
-                    (format "Follow my instructions and refactor %s " lang)
-                    "code that I provide.\n"
-                    (format "- Generate ONLY %s code as output, " lang)
-                    "without any explanation.\n"
-                    "- Do not abbreviate or omit code.\n"
-                    "- Write only a single function.\n"
-                    "- It is acceptable to slightly adjust the existing "
-                    "function for readability.\n"
-                    "- Give me the final and best answer only.\n"
-                    "- Do not ask for further clarification, and make "
-                    "any assumptions you need to follow instructions.\n"
-                    "- NEVER include markdown code fences like \"```\" in "
-                    "the output.")
-          (concat
-           (if (string-empty-p lang)
-               "You are an editor."
-             (format "You are %s %s editor." article lang))
-           "  Follow my instructions and improve or rewrite the text I provide."
-           "  Generate ONLY the replacement text,"
-           " without any explanation."
-           "  Write only a single paragraph or function."
-           "  It is acceptable to slightly adjust the existing"
-           " function for readability."
-           "  NEVER include markdown code fences like \"```\" in"
-           " the output.")))))
+      (if (derived-mode-p 'prog-mode)
+          (gptel-fn-complete--prog-mode-system-prompt t)
+        (gptel-fn-complete--normal-system-prompt t))))
+
+(defun gptel-fn-complete--region-directive-default ()
+  "Generic directive for function completion."
+  (or (save-mark-and-excursion
+        (run-hook-with-args-until-success
+         'gptel-rewrite-directives-hook))
+      (if (derived-mode-p 'prog-mode)
+          (gptel-fn-complete--prog-mode-system-prompt nil)
+        (gptel-fn-complete--normal-system-prompt nil))))
 
 (defun gptel-fn-complete--mark-function-or-para (&optional steps)
   "Put mark at end of this function or paragraph, point at beginning.
@@ -174,14 +216,20 @@ The behavior for when STEPS is positive is not currently well-defined."
 (defun gptel-fn-complete ()
   "Complete function at point using an LLM.
 
-Either the last function or the current region will be used for context."
+Either the function at point or the current region will be used for context,
+along with any other context that has already been added to gptel."
   (interactive)
-  (gptel-fn-complete-mark-function)
-  (gptel-fn-complete-send))
+  (let ((fn-p (not (region-active-p))))
+    (when fn-p
+      (gptel-fn-complete-mark-function))
+    (gptel-fn-complete-send fn-p)))
 
 ;;;###autoload
-(defun gptel-fn-complete-send ()
-  "Complete using an LLM."
+(defun gptel-fn-complete-send (single-function-p)
+  "Complete region using an LLM.
+
+If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
+function."
   (let* ((nosystem (gptel--model-capable-p 'nosystem))
          ;; Try to send context with system message
          (gptel-use-context
@@ -192,14 +240,16 @@ Either the last function or the current region will be used for context."
                                (or (get-char-property (point) 'gptel-rewrite)
                                    (buffer-substring-no-properties
                                     (region-beginning) (region-end))))))
-         (buffer (current-buffer)))
+         (buffer (current-buffer))
+         (directive (if single-function-p
+                        gptel-fn-complete-function-directive
+                      gptel-fn-complete-region-directive)))
     (deactivate-mark)
     (when nosystem
-      (setcar prompt (concat (car-safe (gptel--parse-directive
-                                        gptel-fn-complete-directive 'raw)))))
+      (setcar prompt (car-safe (gptel--parse-directive directive 'raw))))
     (gptel-request prompt
       :dry-run nil
-      :system gptel-fn-complete-directive
+      :system directive
       :stream gptel-stream
       :context
       (let ((ov (or (cdr-safe (get-char-property-and-overlay
