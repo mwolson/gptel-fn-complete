@@ -111,10 +111,19 @@ out that it can!
 
 ## Comparison with other Emacs AI modes
 
+* [aidermacs](https://github.com/MatthewZMD/aidermacs) - `aidermacs` works with
+  a commandline helper tool named `aider` which does most of the heavy
+  lifting. It can record system prompts and conversations to files in your
+  project to better remember what needs to be done. It has significantly more
+  capabilities.
+
+  `gptel-fn-complete` is built on `gptel` and is very minimally targeted towards
+  just completing a single function, paragraph, or region.
+
 * [elysium](https://github.com/lanceberge/elysium) - `elysium` sends either the
   entire file or a selected region to the LLM. It also shows a window on the
   side with the LLM response, and includes smerge markers into the buffer with
-  the result from the LLM.
+  the result from the LLM. It is built on `gptel`.
 
   `gptel-fn-complete` uses a standard `gptel-rewrite` overlay on the code result
   instead of using the more visually-busy smerge markers. It can be configured
@@ -125,11 +134,14 @@ out that it can!
 * [minuet](https://github.com/milanglacier/minuet-ai.el) - `minuet` typically
   does a "fill-in-the-middle" style completion that doesn't modify the code
   before the point. It also has an optional auto-suggestion capability as you
-  type.
+  type. It can automatically include additional context lines before or after
+  the function. It is not built on `gptel` and must be configured separately.
 
-  `gptel-fn-complete` allows a partial rewrite of the entire function, if
-  the LLM thinks there is stylistic value in the rewrite, and is typically
-  manually triggered by a keybind.
+  `gptel-fn-complete` allows a partial rewrite of the entire function, if the
+  LLM thinks there is stylistic value in the rewrite, and is typically manually
+  triggered by a keybind. It does not have an auto-suggestion mode. It also
+  leverages your existing `gptel` setup, allowing tricks like using gptel to
+  manually include more file context to advise a better completion.
 
 ## Notes
 
