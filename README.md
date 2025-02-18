@@ -22,6 +22,11 @@ To use:
   (add-to-list 'load-path (expand-file-name "~/gptel-fn-complete"))
   (autoload #'gptel-fn-complete "gptel-fn-complete" "Complete function at point using an LLM." t)
   ```
+* Optionally, let `gptel-fn-complete` and `gptel-rewrite` automatically apply
+  the code completion from the LLM and skip the extra prompt about it:
+  ```elisp
+  (setq gptel-rewrite-default-action 'accept)
+  ```
 * Now choose which key you'd like to bind `gptel-fn-complete` to. I typically
   add something like this to my Emacs config:
   ```elisp
@@ -54,7 +59,6 @@ first one):
 When I write this code in a `sample.el` file:
 
 ```elisp
-
 (defun my-code ()
   "AI should not modify this."
   (message "Sample 1"))
