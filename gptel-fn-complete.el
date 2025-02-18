@@ -79,7 +79,7 @@ gptel rewrites as well) add to `gptel-rewrite-directives-hook'."
   :type '(function :tag "Function that returns a directive string"))
 
 (defun gptel-fn-complete--prog-mode-system-prompt (single-function-p)
-  "Return a system prompt for gptel-fn-complete for prog-mode buffers.
+  "Return a system prompt for gptel-fn-complete for `prog-mode' buffers.
 
 If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
 function."
@@ -104,7 +104,7 @@ function."
             "the output.")))
 
 (defun gptel-fn-complete--normal-system-prompt (single-function-p)
-  "Return a system prompt for gptel-fn-complete for prog-mode buffers.
+  "Return a system prompt for gptel-fn-complete for `prog-mode' buffers.
 
 If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
 function."
