@@ -238,7 +238,7 @@ function."
          ;; Try to send context with system message
          (gptel-use-context
           (and gptel-use-context (if nosystem 'user 'system)))
-         (prompt (list ""
+         (prompt (list nil
                        "What is the required change?"
                        (format gptel-fn-complete-extra-directive
                                (or (get-char-property (point) 'gptel-rewrite)
