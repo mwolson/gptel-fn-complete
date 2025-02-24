@@ -1,5 +1,7 @@
 # gptel-fn-complete
 
+[![MELPA](https://melpa.org/packages/gptel-fn-complete-badge.svg)](https://melpa.org/#/gptel-fn-complete)
+
 Rewriting completion of function at point using
 [gptel](https://github.com/karthink/gptel) in Emacs.
 
