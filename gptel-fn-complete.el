@@ -257,7 +257,6 @@ function."
                                (or (get-char-property (point) 'gptel-rewrite)
                                    (buffer-substring-no-properties
                                     (region-beginning) (region-end))))))
-         (buffer (current-buffer))
          (directive (if single-function-p
                         gptel-fn-complete-function-directive
                       gptel-fn-complete-region-directive)))
