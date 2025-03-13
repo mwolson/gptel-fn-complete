@@ -46,7 +46,7 @@
   "Complete the function at point using gptel."
   :group 'gptel)
 
-(defcustom gptel-fn-complete-extra-directive "Complete at end:\n\n%s"
+(defcustom gptel-fn-complete-extra-directive "Complete:\n\n%s"
   "Directive to use as the last user message when sending completion prompts.
 
 `format' will be called on it with the string contents of the function as the
@@ -91,7 +91,14 @@ function."
             (format "Follow my instructions and refactor %s " lang)
             "code that I provide.\n"
             (format "- Generate ONLY %s code as output, " lang)
-            "without any explanation.\n"
+            "without any preceding explanation. I mean it: "
+            "respond only with code.\n"
+            "- NEVER include any markdown code fences like \"```\" "
+            (format "or \"```%s\" in the response.\n" lang)
+            "- NEVER include \"```\" "
+            (format "or \"```%s\" around the code.\n" lang)
+            "- Add a single space character on its own line before the "
+            "completed code, nothing else.\n"
             "- Do not abbreviate or omit code.\n"
             (if single-function-p "- Write only a single function.\n" "")
             "- It is acceptable to slightly adjust the existing "
@@ -99,9 +106,7 @@ function."
             " for readability.\n"
             "- Give me the final and best answer only.\n"
             "- Do not ask for further clarification, and make "
-            "any assumptions you need to follow instructions.\n"
-            "- NEVER include markdown code fences like \"```\" in "
-            "the output.")))
+            "any assumptions you need to follow instructions.\n")))
 
 (defun gptel-fn-complete--normal-system-prompt (single-function-p)
   "Return a system prompt for gptel-fn-complete for `prog-mode' buffers.
@@ -114,17 +119,21 @@ function."
                       "an" "a")))
     (concat
      (if (string-empty-p lang)
-         "You are an editor."
-       (format "You are %s %s editor." article lang))
-     "  Follow my instructions and improve or rewrite the text I provide."
-     "  Generate ONLY the replacement text,"
-     " without any explanation."
+         "You are an editor"
+       (format "You are %s %s editor" article lang))
+     ".  Follow my instructions and improve or rewrite the text I provide."
+     "  Generate ONLY the replacement text, without any preceding"
+     " explanation; I mean it: respond only with text."
+     "  NEVER include any markdown code fences like \"```\" "
+     (format "or \"```%s\" in the response." lang)
+     "  NEVER include \"```\" "
+     (format "or \"```%s\" around the text." lang)
+     "  Add a single space character on its own line before the "
+     "completed text, nothing else."
      (if single-function-p "  Write only a single paragraph or function." "")
      "  It is acceptable to slightly adjust the existing"
-     (if single-function-p " function" " code")
-     " for readability."
-     "  NEVER include markdown code fences like \"```\" in"
-     " the output.")))
+     (if single-function-p " function" " text")
+     " for readability.")))
 
 (defun gptel-fn-complete--function-directive-default ()
   "Generic directive for function completion."
@@ -217,19 +226,23 @@ The behavior for when STEPS is positive is not currently well-defined."
     (push-mark pt-min nil t)))
 
 ;;;###autoload
-(defun gptel-fn-complete ()
+(defun gptel-fn-complete (&optional dry-run)
   "Complete function at point using an LLM.
 
-Either the function at point or the current region will be used for context,
-along with any other context that has already been added to gptel."
+Either the function at point or the current region will be used for
+context, along with any other context that has already been added to
+gptel.
+
+If DRY-RUN is non-nil, construct and return the full query data as usual,
+but do not send the request."
   (interactive)
   (let ((fn-p (not (region-active-p))))
     (when fn-p
       (gptel-fn-complete-mark-function))
-    (gptel-fn-complete-send fn-p)))
+    (gptel-fn-complete-send fn-p dry-run)))
 
 ;;;###autoload
-(defun gptel-fn-complete-send (single-function-p)
+(defun gptel-fn-complete-send (single-function-p &optional dry-run)
   "Complete region using an LLM.
 
 If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
@@ -238,7 +251,7 @@ function."
          ;; Try to send context with system message
          (gptel-use-context
           (and gptel-use-context (if nosystem 'user 'system)))
-         (prompt (list nil
+         (prompt (list (get-char-property (point) 'gptel-rewrite)
                        "What is the required change?"
                        (format gptel-fn-complete-extra-directive
                                (or (get-char-property (point) 'gptel-rewrite)
@@ -248,24 +261,41 @@ function."
          (directive (if single-function-p
                         gptel-fn-complete-function-directive
                       gptel-fn-complete-region-directive)))
-    (deactivate-mark)
     (when nosystem
-      (setcar prompt (car-safe (gptel--parse-directive directive 'raw))))
-    (gptel-request prompt
-      :dry-run nil
-      :system directive
-      :stream gptel-stream
-      :context
-      (let ((ov (or (cdr-safe (get-char-property-and-overlay
-                               (point) 'gptel-rewrite))
-                    (make-overlay (region-beginning) (region-end) nil t))))
-        (overlay-put ov 'category 'gptel)
-        (overlay-put ov 'evaporate t)
-        (cons ov (generate-new-buffer "*gptel-fn-complete*")))
-      :callback `(lambda (&rest args)
-                   (apply #'gptel--rewrite-callback args)
-                   (with-current-buffer ,buffer
-                     (backward-char))))))
+      (setcar prompt (concat
+                      (car-safe (gptel--parse-directive directive 'raw))
+                      "\n\n" (car prompt))))
+    (prog1 (gptel-request prompt
+             :dry-run dry-run
+             :system directive
+             :stream gptel-stream
+             :context
+             (let ((ov (or (cdr-safe (get-char-property-and-overlay
+                                      (point) 'gptel-rewrite))
+                           (make-overlay (region-beginning) (region-end)
+                                         nil t))))
+               (overlay-put ov 'category 'gptel)
+               (overlay-put ov 'evaporate t)
+               (cons ov (generate-new-buffer "*gptel-fn-complete*")))
+             :callback #'gptel-fn-complete--callback)
+      ;; Move back so that the cursor is on the overlay when done.
+      (unless (get-char-property (point) 'gptel-rewrite)
+        (when (= (point) (region-end)) (backward-char 1)))
+      (deactivate-mark))))
+
+(defun gptel-fn-complete--callback (response info)
+  "Callback for `gptel-fn-complete'."
+  (let ((should-send t))
+    (when (and (stringp response)
+               (not (plist-get info :fn-completion-started)))
+      (save-match-data
+        (setq response (replace-regexp-in-string
+                        "\\`[[:space:]\r\n]+" "" response)))
+      (if (string-empty-p response)
+          (setq should-send nil)
+        (plist-put info :fn-completion-started t)))
+    (when should-send
+      (gptel--rewrite-callback response info))))
 
 (provide 'gptel-fn-complete)
 ;;; gptel-fn-complete.el ends here
