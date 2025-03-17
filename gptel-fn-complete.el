@@ -246,7 +246,10 @@ but do not send the request."
   "Complete region using an LLM.
 
 If SINGLE-FUNCTION-P is non-nil, encourage the LLM to return a single
-function."
+function.
+
+If DRY-RUN is non-nil, construct and return the full query data as usual,
+but do not send the request."
   (let* ((nosystem (gptel--model-capable-p 'nosystem))
          ;; Try to send context with system message
          (gptel-use-context
@@ -283,7 +286,17 @@ function."
       (deactivate-mark))))
 
 (defun gptel-fn-complete--callback (response info)
-  "Callback for `gptel-fn-complete'."
+  "Callback for `gptel-fn-complete'.
+
+Show the result in an overlay over the original text, and
+set up dispatch actions.
+
+RESPONSE is the response received.  It may also be t (to indicate
+success) nil (to indicate failure), or the symbol `abort'. Leading
+whitespace will be removed from responses, until at least one
+non-whitespace character arrives in a response.
+
+INFO is the async communication channel for the rewrite request."
   (let ((should-send t))
     (when (and (stringp response)
                (not (plist-get info :fn-completion-started)))
